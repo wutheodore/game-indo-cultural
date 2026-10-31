@@ -103,7 +103,12 @@ export default function PrizePage() {
           完成所有题目即可抽奖一次。中奖率 1/1000。
         </p>
 
-        <div className={`roulette-wheel ${drawingPrize ? 'spinning' : ''}`} aria-hidden="true">
+        <div 
+          className={`roulette-wheel ${drawingPrize ? 'spinning' : ''}`} 
+          aria-hidden="true"
+          onClick={answeredAllQuestions && !prizeDraw && !drawingPrize ? spinForPrize : undefined}
+          style={{ cursor: (answeredAllQuestions && !prizeDraw && !drawingPrize) ? 'pointer' : 'default' }}
+        >
           <div className="roulette-wheel-inner">
             {prizeDraw ? prizeDraw.ticketNumber.toString().padStart(3, '0') : '1000'}
           </div>
