@@ -10,9 +10,15 @@ A winning completed session receives 3 Indomie packs and 1 Baju Barong Bali T-sh
 
 Requirements: .NET 8 SDK, Node.js, npm, and Docker with Docker Compose.
 
-1. Start PostgreSQL: `docker compose up -d db`
-2. Start the API from `backend/IndonesianGame.Api` using `dotnet run`.
-3. Start the frontend from `frontend` using `npm install` and `npm run dev -- --host 0.0.0.0`.
+In a PowerShell terminal, set local credentials and start PostgreSQL:
 
-Set `AdminToken` and the database connection string through environment variables before using an internet-facing deployment. The values in local configuration are development defaults only.
+```powershell
+$env:POSTGRES_PASSWORD = "choose-a-local-password"
+$env:ConnectionStrings__Default = "Host=localhost;Port=5432;Database=indogame;Username=indogame;Password=$($env:POSTGRES_PASSWORD)"
+$env:AdminToken = "replace-with-a-long-random-token"
+docker compose up -d db
+```
 
+Start the API from `backend/IndonesianGame.Api` with `dotnet run`. In a second terminal, start the frontend from `frontend` with `npm install` and `npm run dev -- --host 0.0.0.0`.
+
+The connection string and admin token are intentionally blank in the checked-in app settings. Supply real values through environment variables, and use strong unique credentials before any internet-facing deployment.
