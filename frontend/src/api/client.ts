@@ -35,8 +35,9 @@ export interface QuestionResultView {
 }
 export interface FinishResponse {
   sessionId: string; name: string; studentId: string
-  score: number; total: number
-  durationMs: number; results: QuestionResultView[]
+  score: number; total: number; durationMs: number
+  prizeWon: boolean | null; ticketNumber: number | null
+  results: QuestionResultView[]
 }
 export interface PrizeDrawResponse {
   won: boolean; ticketNumber: number; prizeName: string; alreadyDrawn: boolean
@@ -44,4 +45,6 @@ export interface PrizeDrawResponse {
 export interface LeaderboardEntry {
   rank: number; name: string; studentIdMasked: string
   score: number; durationMs: number; finishedAt: string
+  prizeWon: boolean | null
+  ticketNumber: number | null
 }

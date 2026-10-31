@@ -20,6 +20,7 @@ public record SubmitAnswerResponse(bool IsCorrect, int AnsweredCount, int TotalQ
 public record FinishResponse(
     Guid SessionId, string Name, string StudentId,
     int Score, int Total, long DurationMs,
+    bool? PrizeWon, int? TicketNumber, // <-- Tambahan baru ticket untuk pisah page
     List<QuestionResultView> Results);
 
 public record PrizeDrawResponse(
@@ -36,4 +37,5 @@ public record QuestionResultView(
 
 public record LeaderboardEntry(
     int Rank, string Name, string StudentIdMasked,
-    int Score, long DurationMs, DateTime FinishedAt);
+    int Score, long DurationMs, DateTime FinishedAt,
+    bool? PrizeWon, int? TicketNumber);

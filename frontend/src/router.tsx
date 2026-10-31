@@ -4,6 +4,7 @@ import PlayPage from './routes/PlayPage'
 import ResultPage from './routes/ResultPage'
 import LeaderboardPage from './routes/LeaderboardPage'
 import AdminPage from './routes/AdminPage'
+import PrizePage from './routes/PrizePage'
 
 const rootRoute = createRootRoute({ component: () => <Outlet /> })
 
@@ -17,6 +18,12 @@ const playRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/play/$sessionId',
   component: PlayPage,
+})
+
+const prizeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/prize/$sessionId',
+  component: PrizePage,
 })
 
 const resultRoute = createRoute({
@@ -38,7 +45,7 @@ const adminRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  indexRoute, playRoute, resultRoute, leaderboardRoute, adminRoute,
+  indexRoute, playRoute, prizeRoute, resultRoute, leaderboardRoute, adminRoute,
 ])
 
 export const router = createRouter({ routeTree })

@@ -46,9 +46,19 @@ export default function RegisterPage() {
           <Kawung size={56} />
         </div>
 
-        <h1>60-Second Indonesian Batik Challenge</h1>
-        <p className="muted">4 questions · 60 seconds · highest score + fastest time wins</p>
-        <p className="muted small">4 道题 · 60 秒 · 得分最高且用时最短者获胜</p>
+        <h1>40-Second Indonesian Cultural Game</h1>
+        
+        {/* Teks diperbarui: Hanya menyebutkan Leaderboard & Bonus Spin */}
+        <div className="intro-text">
+          <p className="muted">
+            🏆 Compete on the <b>Leaderboard</b>!<br/>
+            🎁 Finish all questions for a <b>Bonus Spin</b> to win Indomie & Barong T-shirt!
+          </p>
+          <p className="muted small">
+            🏆 冲击<b>排行榜</b>！<br/>
+            🎁 完成所有题目即可参与<b>转盘抽奖</b>，赢取营多面与巴厘岛T恤！
+          </p>
+        </div>
 
         <form onSubmit={onSubmit}>
           <label>Student ID / 学号</label>

@@ -23,23 +23,39 @@ export default function LeaderboardPage() {
         {isLoading && <p>Loading… / 加载中…</p>}
         {data && (
             <div className="lb-wrap">
-                <table className="lb">
-                    <thead>
-                    <tr><th>#</th><th>Name</th><th>ID</th><th>Score</th><th>Time</th></tr>
-                    </thead>
-                    <tbody>
-                    {data.map(e => (
-                        <tr key={e.rank} className={e.rank === 1 ? 'top' : ''}>
-                        <td>{e.rank === 1 ? '🥇' : e.rank === 2 ? '🥈' : e.rank === 3 ? '🥉' : e.rank}</td>
-                        <td>{e.name}</td>
-                        <td className="muted">{e.studentIdMasked}</td>
-                        <td><b>{e.score}</b></td>
-                        <td>{(e.durationMs / 1000).toFixed(1)}s</td>
-                        </tr>
-                    ))}
-                    </tbody>
-                </table>
-          </div>
+              <table className="lb">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Score</th>
+                    <th>Time</th>
+                    <th>Winning Ticket</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map(e => (
+                    <tr key={e.rank} className={e.rank === 1 ? 'top' : ''}>
+                      <td>{e.rank === 1 ? '🥇' : e.rank === 2 ? '🥈' : e.rank === 3 ? '🥉' : e.rank}</td>
+                      <td>{e.name}</td>
+                      <td><b>{e.score}</b></td>
+                      <td>{(e.durationMs / 1000).toFixed(1)}s</td>
+                      <td>
+                        {e.ticketNumber !== null ? (
+                          e.prizeWon ? (
+                            <span className="prize-badge won">🎉 Won #{e.ticketNumber}</span>
+                          ) : (
+                            <span className="prize-badge">🎟️ #{e.ticketNumber}</span>
+                          )
+                        ) : (
+                          <span className="muted">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
         )}
         <div className="actions">
           <Link to="/" className="btn ghost">Back / 返回</Link>

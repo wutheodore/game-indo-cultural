@@ -15,7 +15,7 @@ public class GameException : Exception
 public class GameService
 {
     private readonly AppDbContext _db;
-    private const int TotalSeconds = 60;
+    private const int TotalSeconds = 40;
     private const int GraceSeconds = 2;
 
     public GameService(AppDbContext db) => _db = db;
@@ -154,7 +154,7 @@ public class GameService
     public async Task<FinishResponse> FinishAsync(Guid sessionId)
     {
         var session = await LoadSessionAsync(sessionId);
-        if (session.Status == "Finished") return BuildFinish(session);
+        if (session.Status == "Finished") return await BuildFinishAsync(session);
         if (session.StartedAt == null) throw new GameException("Session was never started");
 
         var deadline = session.StartedAt.Value.AddSeconds(TotalSeconds);
@@ -167,7 +167,7 @@ public class GameService
         session.Status = "Finished";
         await _db.SaveChangesAsync();
 
-        return BuildFinish(session);
+        return await BuildFinishAsync(session);
     }
 
     public async Task<FinishResponse> GetResultAsync(Guid sessionId)
@@ -175,7 +175,7 @@ public class GameService
         var session = await LoadSessionAsync(sessionId);
         if (session.Status != "Finished")
             throw new GameException("Session not finished yet", 409);
-        return BuildFinish(session);
+        return await BuildFinishAsync(session);
     }
 
     public async Task<PrizeDrawResponse> DrawPrizeAsync(Guid sessionId)
@@ -206,13 +206,22 @@ public class GameService
 
     public async Task<List<LeaderboardEntry>> GetLeaderboardAsync(int take = 20)
     {
+        // Ambil data session dan LEFT JOIN dengan PrizeDraws
         var rows = await _db.Sessions
             .Where(s => s.Status == "Finished")
             .OrderByDescending(s => s.Score)
             .ThenBy(s => s.DurationMs)
             .ThenBy(s => s.FinishedAt)
             .Take(take)
-            .Select(s => new { s.Name, s.StudentId, s.Score, s.DurationMs, s.FinishedAt })
+            .Select(s => new { 
+                s.Id, 
+                s.Name, 
+                s.StudentId, 
+                s.Score, 
+                s.DurationMs, 
+                s.FinishedAt,
+                Prize = _db.PrizeDraws.FirstOrDefault(p => p.SessionId == s.Id)
+            })
             .ToListAsync();
 
         return rows.Select((r, i) => new LeaderboardEntry(
@@ -221,7 +230,9 @@ public class GameService
             Mask(r.StudentId),
             r.Score,
             r.DurationMs ?? 0,
-            r.FinishedAt ?? DateTime.MinValue)).ToList();
+            r.FinishedAt ?? DateTime.MinValue,
+            r.Prize != null ? r.Prize.Won : (bool?)null,
+            r.Prize != null ? r.Prize.TicketNumber : (int?)null)).ToList();
     }
 
     private async Task<GameSession> LoadSessionAsync(Guid id) =>
@@ -247,8 +258,10 @@ public class GameService
                     .ToList()))
             .ToList();
 
-        private static FinishResponse BuildFinish(GameSession session)
+        private async Task<FinishResponse> BuildFinishAsync(GameSession session)
         {
+            var prize = await _db.PrizeDraws.AsNoTracking().FirstOrDefaultAsync(p => p.SessionId == session.Id);
+
             var results = session.Questions
                 .OrderBy(q => q.OrderIndex)
                 .Select(sq =>
@@ -267,8 +280,9 @@ public class GameService
             return new FinishResponse(
                 session.Id, session.Name, session.StudentId,
                 session.Score, session.Questions.Count,
-                session.DurationMs ?? 0, results);
+                session.DurationMs ?? 0, prize?.Won, prize?.TicketNumber, results);
         }
+
         private static string Mask(string id) =>
         id.Length <= 4 ? id : $"{id[..2]}***{id[^2..]}";
 }

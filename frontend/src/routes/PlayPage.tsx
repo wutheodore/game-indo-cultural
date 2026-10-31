@@ -10,7 +10,8 @@ export default function PlayPage() {
   const [begin, setBegin] = useState<BeginSessionResponse | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const [remainingMs, setRemainingMs] = useState(60000)
+  // Perbaikan 1: Mulai dari 0, karena timer asli akan diambil dari server
+  const [remainingMs, setRemainingMs] = useState(0)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [correctCount, setCorrectCount] = useState(0)
   const [selected, setSelected] = useState<string | null>(null)
@@ -24,7 +25,7 @@ export default function PlayPage() {
       .then(d => {
         if (cancelled) return
         if (d.isFinished) {
-          navigate({ to: '/result/$sessionId', params: { sessionId } })
+          navigate({ to: '/prize/$sessionId', params: { sessionId } })
           return
         }
         setBegin(d)
@@ -51,7 +52,7 @@ export default function PlayPage() {
         doFinish()
       }
     }
-    tick()
+    tick() // Panggil langsung agar UI tidak menunggu 100ms pertama
     const t = setInterval(tick, 100)
     return () => clearInterval(t)
   }, [begin])
@@ -65,7 +66,7 @@ export default function PlayPage() {
         await new Promise(r => setTimeout(r, 500))
       }
     }
-    navigate({ to: '/result/$sessionId', params: { sessionId } })
+    navigate({ to: '/prize/$sessionId', params: { sessionId } })
   }
 
   async function pick(optionId: string) {
@@ -81,6 +82,8 @@ export default function PlayPage() {
         }),
       })
       if (res.isCorrect) setCorrectCount(c => c + 1)
+      
+      // Jika sudah menjawab semua soal, langsung selesai
       if (res.answeredCount >= res.totalQuestions) {
         finishingRef.current = true
         await doFinish()
@@ -91,6 +94,7 @@ export default function PlayPage() {
       }
     } catch (e: any) {
       const msg = (e.message ?? '').toLowerCase()
+      // Jika waktu habis atau game sudah selesai di server
       if (msg.includes('time') || msg.includes('not playing') || msg.includes('finished')) {
         finishingRef.current = true
         await doFinish()
@@ -113,14 +117,15 @@ export default function PlayPage() {
 
   const q = begin.questions[currentIndex]
   const seconds = Math.ceil(remainingMs / 1000)
-  const isDanger = remainingMs <= 10000
+  const isDanger = remainingMs <= 10000 // Merah jika sisa 10 detik
 
   return (
     <div className="page">
       <div className="hud">
         <div className={`timer ${isDanger ? 'danger' : ''}`}>{seconds}s</div>
         <div className="progress">
-          {[0, 1, 2, 3].map(i => (
+          {/* Perbaikan 2: Titik progress dibuat dinamis mengikuti jumlah soal */}
+          {begin.questions.map((_, i) => (
             <span key={i} className={`dot ${i < correctCount ? 'filled' : ''}`} />
           ))}
         </div>
@@ -128,30 +133,32 @@ export default function PlayPage() {
       </div>
 
       <div className="card card-play">
-  <BatikCorner position="tl" />
-  <BatikCorner position="tr" />
-  <BatikCorner position="bl" />
-  <BatikCorner position="br" />
+        <BatikCorner position="tl" />
+        <BatikCorner position="tr" />
+        <BatikCorner position="bl" />
+        <BatikCorner position="br" />
 
-  <div className="qimg-wrap">
-    <img className="qimg" src={q.imageUrl} alt="" />
-  </div>
-  <h2 className="q-en">{q.textEn}</h2>
-  <p className="q-zh">{q.textZh}</p>
-  <div className="options">
-    {q.options.map(o => (
-      <button
-        key={o.optionId}
-        className={`opt ${selected === o.optionId ? 'selected' : ''}`}
-        disabled={busy || remainingMs <= 0}
-        onClick={() => pick(o.optionId)}
-      >
-        <span className="opt-en">{o.textEn}</span>
-        <span className="opt-zh">{o.textZh}</span>
-      </button>
-    ))}
-  </div>
-</div>
+        <div className="qimg-wrap">
+          <img className="qimg" src={q.imageUrl} alt="" />
+        </div>
+        
+        <h2 className="q-en">{q.textEn}</h2>
+        <p className="q-zh">{q.textZh}</p>
+        
+        <div className="options">
+          {q.options.map(o => (
+            <button
+              key={o.optionId}
+              className={`opt ${selected === o.optionId ? 'selected' : ''}`}
+              disabled={busy || remainingMs <= 0}
+              onClick={() => pick(o.optionId)}
+            >
+              <span className="opt-en">{o.textEn}</span>
+              <span className="opt-zh">{o.textZh}</span>
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

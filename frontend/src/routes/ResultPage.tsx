@@ -52,9 +52,6 @@ export default function ResultPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(false)
   const [isCapturing, setIsCapturing] = useState(false)
-  const [prizeDraw, setPrizeDraw] = useState<PrizeDrawResponse | null>(null)
-  const [drawingPrize, setDrawingPrize] = useState(false)
-  const [prizeError, setPrizeError] = useState<string | null>(null)
 
   if (isLoading) {
     return <div className="page center"><div className="card">Loading… / 加载中…</div></div>
@@ -119,80 +116,11 @@ export default function ResultPage() {
     }
   }
 
-  async function spinForPrize() {
-    if (drawingPrize || prizeDraw) return
-    setDrawingPrize(true)
-    setPrizeError(null)
-    try {
-      const result = await api<PrizeDrawResponse>(
-        `/api/sessions/${sessionId}/prize-draw`,
-        { method: 'POST' },
-      )
-      if (result.alreadyDrawn) {
-        setPrizeDraw(result)
-        setDrawingPrize(false)
-        return
-      }
-      window.setTimeout(() => {
-        setPrizeDraw(result)
-        setDrawingPrize(false)
-      }, 2600)
-    } catch (e: any) {
-      setPrizeError(e.message ?? 'The prize draw could not be completed.')
-      setDrawingPrize(false)
-    }
-  }
-
   const safeName = data.name.replace(/[^a-zA-Z0-9\u4e00-\u9fa5_-]/g, '_') || 'player'
   const filename = `indonesian-challenge-${safeName}.png`
 
   return (
     <div className="page">
-      <section className="card prize-draw-card" aria-live="polite">
-        <span className="prize-eyebrow">🎟️ BONUS PRIZE DRAW</span>
-        <h2 className="prize-title">Try your luck!</h2>
-        <p className="muted">Finish all questions for one spin. Every player has a 1 in 1,000 chance.</p>
-
-        <div className={`roulette-wheel ${drawingPrize ? 'spinning' : ''}`} aria-hidden="true">
-          <div className="roulette-wheel-inner">{prizeDraw ? prizeDraw.ticketNumber.toString().padStart(3, '0') : '1000'}</div>
-        </div>
-
-        <h3 className="prize-name">3 Indomie packs + 1 Baju Barong Bali T-shirt</h3>
-        <div className="prize-products">
-          <figure className="prize-product">
-            <img src="/images/indomie.jpg" alt="Indomie instant noodles" />
-            <figcaption><b>×3</b> Indomie packs</figcaption>
-          </figure>
-          <figure className="prize-product">
-            <img src="/images/baju-barong-bali.jpg" alt="Baju Barong Bali T-shirt" />
-            <figcaption><b>×1</b> Barong Bali T-shirt</figcaption>
-          </figure>
-        </div>
-
-        {!answeredAllQuestions ? (
-          <p className="prize-locked">Answer every question to unlock the prize draw.</p>
-        ) : !prizeDraw ? (
-          <button className="btn prize-spin-button" onClick={spinForPrize} disabled={drawingPrize}>
-            {drawingPrize ? 'Spinning…' : '🎡 Spin for your chance'}
-          </button>
-        ) : (
-          <div className={`prize-result ${prizeDraw.won ? 'prize-won' : 'prize-missed'}`}>
-            {prizeDraw.won ? (
-              <>
-                <strong>🎉 You won 3 Indomie packs + 1 Baju Barong Bali T-shirt!</strong>
-                <span>Winning ticket #{prizeDraw.ticketNumber.toString().padStart(3, '0')} of 1,000</span>
-              </>
-            ) : (
-              <>
-                <strong>Ticket #{prizeDraw.ticketNumber.toString().padStart(3, '0')} of 1,000</strong>
-                <span>Not a winning ticket this time. Thanks for playing!</span>
-              </>
-            )}
-          </div>
-        )}
-        {prizeError && <p className="error prize-error">{prizeError}</p>}
-      </section>
-
       <div className="share-card" ref={cardRef}>
         <BatikCorner position="tl" />
         <BatikCorner position="tr" />
@@ -239,11 +167,11 @@ export default function ResultPage() {
 
         <p className="share-eyebrow">🇮🇩 INDONESIA · 印度尼西亚</p>
         <h2 className="share-title">
-          I Survived the<br />Indonesian Batik Challenge
+          I Survived the<br /> 40s Indonesian Cultural Game!
         </h2>
         <p className="share-name">{data.name}</p>
         <p className="share-id">ID · {data.studentId}</p>
-
+        
         <BatikDivider />
 
         <div className="batik-grid">
@@ -269,6 +197,13 @@ export default function ResultPage() {
             <span className="share-stat-label">seconds</span>
           </div>
         </div>
+
+        {data.prizeWon && (
+          <div className="share-prize-won">
+            🎉 Prize Winner! 3 Indomie + Barong T-shirt<br />
+            🎉 中奖！3包营多面 + 巴厘岛T恤
+          </div>
+        )}
 
         <p className="share-hint">
           {isCapturing
